@@ -16,15 +16,6 @@ jobs:
     - name: Append GOPATH onto PATH
       run: echo "::set-env name=PATH::$PATH:$GOPATH/bin"
 
-
-    # BUILD
-
-    # Build all
-    - name: Build
-      env:
-        GOPROXY: "https://proxy.golang.org"
-      run: go build
-
     # TESTS
 
     # Run all tests
