@@ -425,94 +425,61 @@ ScanElements:
 
 ScanBooleanTrue:
 	// Start scanning after a 't'
-	if Scan() {
+	if offsetRd+2 >= len(in) ||
+		in[offsetRd] != 'r' ||
+		in[offsetRd+1] != 'u' ||
+		in[offsetRd+2] != 'e' {
+		// EOF before end
 		debugCode = 22
 		goto ERR
 	}
-	if current != 'r' {
-		debugCode = 22
-		goto ERR
+	if compact {
+		in[offsetWr] = 'r'
+		in[offsetWr+1] = 'u'
+		in[offsetWr+2] = 'e'
+		offsetWr += 3
 	}
-	if Scan() {
-		debugCode = 22
-		goto ERR
-	}
-	if current != 'u' {
-		debugCode = 22
-		goto ERR
-	}
-	if Scan() {
-		debugCode = 22
-		goto ERR
-	}
-	if current != 'e' {
-		debugCode = 22
-		goto ERR
-	}
+	offsetRd += 3
 	goto ScanElements
 
 ScanBooleanFalse:
 	// Start scanning after an 'f'
-	if Scan() {
+	if offsetRd+3 >= len(in) ||
+		in[offsetRd] != 'a' ||
+		in[offsetRd+1] != 'l' ||
+		in[offsetRd+2] != 's' ||
+		in[offsetRd+3] != 'e' {
+		// EOF before end
 		debugCode = 23
 		goto ERR
 	}
-	if current != 'a' {
-		debugCode = 23
-		goto ERR
+	if compact {
+		in[offsetWr] = 'a'
+		in[offsetWr+1] = 'l'
+		in[offsetWr+2] = 's'
+		in[offsetWr+3] = 'e'
+		offsetWr += 4
 	}
-	if Scan() {
-		debugCode = 23
-		goto ERR
-	}
-	if current != 'l' {
-		debugCode = 23
-		goto ERR
-	}
-	if Scan() {
-		debugCode = 23
-		goto ERR
-	}
-	if current != 's' {
-		debugCode = 23
-		goto ERR
-	}
-	if Scan() {
-		debugCode = 23
-		goto ERR
-	}
-	if current != 'e' {
-		debugCode = 23
-		goto ERR
-	}
+	offsetRd += 4
 	goto ScanElements
 
 ScanNull:
 	// Start scanning after a 'n'
-	if Scan() {
+	if offsetRd+3 > len(in) ||
+		in[offsetRd] != 'u' ||
+		in[offsetRd+1] != 'l' ||
+		in[offsetRd+2] != 'l' {
+		// EOF before end
 		debugCode = 24
 		goto ERR
 	}
-	if current != 'u' {
-		debugCode = 24
-		goto ERR
+	if compact {
+		in[offsetWr] = 'u'
+		in[offsetWr+1] = 'l'
+		in[offsetWr+2] = 'l'
+		offsetWr += 3
 	}
-	if Scan() {
-		debugCode = 24
-		goto ERR
-	}
-	if current != 'l' {
-		debugCode = 24
-		goto ERR
-	}
-	if Scan() {
-		debugCode = 24
-		goto ERR
-	}
-	if current != 'l' {
-		debugCode = 24
-		goto ERR
-	}
+	offsetRd += 3
 	goto ScanElements
 
 EOF:
