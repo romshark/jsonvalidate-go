@@ -136,22 +136,29 @@ func (pr *Parser) Parse(in []byte, compact bool) (out []byte, err Err) {
 
 	// Non-compacting scanner, scans the next non-space symbol
 	Scan := func() bool {
-		for {
-			if offsetRd >= len(in) {
-				// EOF
-				return true
-			}
+		if offsetRd >= len(in) {
+			// EOF
+			return true
+		}
+		if in[offsetRd] > 0x20 {
+			// Fast path
 			current = in[offsetRd]
 			offsetRd++
-			switch current {
-			case ' ':
-			case '\t':
-			case '\n':
-			case '\r':
-			default:
+			return false
+		}
+
+		// Slow path
+		for ; offsetRd < len(in); offsetRd++ {
+			if in[offsetRd] != 0x20 &&
+				in[offsetRd] != 0x0A &&
+				in[offsetRd] != 0x09 &&
+				in[offsetRd] != 0x0D {
+				current = in[offsetRd]
+				offsetRd++
 				return false
 			}
 		}
+		return true
 	}
 
 	// Non-compacting string scanner, scans a string after '"'
