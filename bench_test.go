@@ -8,16 +8,32 @@ import (
 	"github.com/valyala/fastjson"
 )
 
-var smValid = []byte(
-	`{"foo":{"baar":{"bazz":[null,["fuzzz"],true]}}, "kraz": "nazzz"}`,
-)
+var (
+	minisculeValid = `{"x":2}`
+	tinyValid      = `{"foo":2,"bar":"okay"}`
+	smallValid     = `{
+		"foo": {
+			"baar": {
+				"bazz": [
+					null,
+					[
+						"fuzzz"
+					],
+					true,
+					34.632e+2,
+					42
+				]
+			}
+		},
+		"kraz": "nazzz"
+	}`
 
-var md1Invalid = []byte(
-	`{"x":[[[[[[[[[[[[[[[[[[[[[["y]]]]]]]]]]]]]]]]]]]]]]}`,
-)
+	minisculeInvalid = `{"x":"y}`
+	tinyInvalid      = `{"foo":2,"bar":"okay}`
+	smallInvalid     = `{"foo":{"baar":{"bazz":[null,["fuzzz"],true]}}, "kraz": "nazzz"}}`
 
-var smInvalid = []byte(
-	`{"foo":{"baar":{"bazz":[null,["fuzzz"],true]}}, "kraz": "nazzz"}}`,
+	// Stack depth: 64
+	deeplyNestedInvalid = `[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[{"y`
 )
 
 var (
@@ -35,9 +51,11 @@ func BenchmarkValidateValid(b *testing.B) {
 		nm string
 		in []byte
 	}{
-		{"small", smValid},
-		{"medium", []byte(mdValid)},
-		// {"large", []byte(lgValid)}, //TODO: implement numbers
+		{"ms", []byte(minisculeValid)},
+		{"tn", []byte(tinyValid)},
+		{"sm", []byte(smallValid)},
+		{"md", []byte(mdValid)},
+		{"lg", []byte(lgValid)},
 	}
 
 	testSuites := []struct {
@@ -45,8 +63,9 @@ func BenchmarkValidateValid(b *testing.B) {
 		fn func(in []byte)
 	}{
 		{"jsonvalidate", func(in []byte) {
-			_, ge1 = gParser.Parse(in, false)
-			if ge1.DebugCode != 0 {
+			if ge1 = gParser.ValidateBytes(in, Options{
+				AllowDuplicateKeys: true,
+			}); ge1.DebugCode != 0 {
 				panic(fmt.Errorf("unexpected error: %v", ge1))
 			}
 		}},
@@ -80,9 +99,11 @@ func BenchmarkValidateInvalid(b *testing.B) {
 		nm string
 		in []byte
 	}{
-		{"small", smInvalid},
-		{"medium", []byte(mdInvalid)},
-		{"md1Invalid", []byte(md1Invalid)},
+		{"miniscule", []byte(minisculeInvalid)},
+		{"tiny", []byte(tinyInvalid)},
+		{"small", []byte(smallInvalid)},
+		{"medium", []byte(mediumInvalid)},
+		{"deeplyNested", []byte(deeplyNestedInvalid)},
 	}
 
 	testSuites := []struct {
@@ -90,8 +111,9 @@ func BenchmarkValidateInvalid(b *testing.B) {
 		fn func(in []byte)
 	}{
 		{"jsonvalidate", func(in []byte) {
-			_, ge1 = gParser.Parse(in, false)
-			if ge1.DebugCode == 0 {
+			if ge1 = gParser.ValidateBytes(in, Options{
+				AllowDuplicateKeys: true,
+			}); ge1.DebugCode == 0 {
 				panic(fmt.Errorf("unexpected error: %v", ge1))
 			}
 		}},
