@@ -93,7 +93,6 @@ func (pr *Parser) validate(
 		}
 		stk.Push(stack.Object)
 		containerLevel++
-		containerType = stack.Object
 		s = s[1:]
 	}
 
@@ -125,7 +124,7 @@ func (pr *Parser) validate(
 					// No container to terminate
 					return error(7)
 				}
-				containerType, elementIndex, containerLevel = stk.Top()
+				_, _, containerLevel = stk.Top()
 				s = s[1:]
 				continue
 			case elementIndex > 0:
@@ -196,7 +195,7 @@ func (pr *Parser) validate(
 					// No container to terminate
 					return error(14)
 				}
-				containerType, elementIndex, containerLevel = stk.Top()
+				_, _, containerLevel = stk.Top()
 				s = s[1:]
 				continue
 			case elementIndex > 0:
@@ -228,7 +227,7 @@ func (pr *Parser) validate(
 		case '"':
 			// String value
 			err.Offset = currentOffset()
-			sv, s, err.DebugCode = scanString(s[1:])
+			_, s, err.DebugCode = scanString(s[1:])
 			if err.DebugCode != 0 {
 				return
 			}
@@ -482,32 +481,6 @@ func scanRawString(s string) (string, string, int) {
 			return ss[:len(ss)-len(s)+n], s[n+1:], 0
 		}
 	}
-}
-
-// Ensure len(s) > 0 before calling
-func scanRawNumber(s string) (string, string, int) {
-
-	// Find the end of the number.
-	for i := 0; i < len(s); i++ {
-		ch := s[i]
-		if (ch >= '0' && ch <= '9') || ch == '.' || ch == '-' || ch == 'e' || ch == 'E' || ch == '+' {
-			continue
-		}
-		if i == 0 || i == 1 && (s[0] == '-' || s[0] == '+') {
-			if len(s[i:]) >= 3 {
-				xs := s[i : i+3]
-				if strings.EqualFold(xs, "inf") || strings.EqualFold(xs, "nan") {
-					return s[:i+3], s[i+3:], 0
-				}
-			}
-			// Unexpected char
-			return "", s, 900
-		}
-		ns := s[:i]
-		s = s[i:]
-		return ns, s, 0
-	}
-	return s, "", 0
 }
 
 func b2s(b []byte) string {
